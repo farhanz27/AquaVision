@@ -29,7 +29,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   children,
   title,
   visible,
-  height = "50%",
+  height = "60%",
   titleStyle,
   containerStyle,
   backdropPressToClose = true,
