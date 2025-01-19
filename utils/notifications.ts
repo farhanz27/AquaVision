@@ -1,40 +1,69 @@
+import { Alert, Platform, PermissionsAndroid, Linking } from "react-native";
 import messaging from "@react-native-firebase/messaging";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Alert } from "react-native";
 
-// Event emitter to notify components about changes
+// Event listeners to notify components about notification updates
 const notificationListeners: ((notifications: any[]) => void)[] = [];
 
 /**
- * Request notification permissions from the user.
+ * Request notification permission (Android-specific).
+ * For iOS, Firebase Messaging handles this.
  */
 export async function requestNotificationPermission() {
-  try {
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-    if (enabled) {
-      console.log("Notification permissions granted.");
-      return true;
-    } else {
-      Alert.alert(
-        "Permissions Denied",
-        "Notifications are disabled. Please enable them in your device settings."
+  if (Platform.OS === "android") {
+    try {
+      // Check if permission is already granted
+      const isGranted = await PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
       );
+
+      if (isGranted) {
+        console.log("Notification permission already granted.");
+        return true;
+      }
+
+      // Request permission
+      const status = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        {
+          title: "Notification Permission",
+          message:
+            "This app needs access to notifications so you can stay updated.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK",
+        }
+      );
+
+      if (status === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log("Notification permission granted.");
+        return true;
+      } else if (status === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+        Alert.alert(
+          "Permission Required",
+          "You have permanently denied notification permissions. Please enable them in your device settings."
+        );
+      } else {
+        Alert.alert(
+          "Permission Denied",
+          "Notification permissions are required for updates. Please enable them in your device settings."
+        );
+      }
+
+      return false;
+    } catch (error) {
+      console.error("Error requesting notification permission:", error);
       return false;
     }
-  } catch (error) {
-    console.error("Error requesting notification permissions:", error);
-    Alert.alert("Error", "An error occurred while requesting notification permissions.");
-    return false;
   }
+
+  console.log("Notification permissions are handled automatically on this platform.");
+  return true;
 }
 
 /**
  * Subscribe the device to a specific topic.
- * @param topic Topic name (e.g., 'sensor-alerts')
+ * @param topic Topic name (e.g., 'sensor-alerts').
  */
 export async function subscribeToTopic(topic: string) {
   try {
@@ -42,6 +71,19 @@ export async function subscribeToTopic(topic: string) {
     console.log(`Successfully subscribed to topic: ${topic}`);
   } catch (error) {
     console.error(`Error subscribing to topic "${topic}":`, error);
+  }
+}
+
+/**
+ * Unsubscribe the device from a specific topic.
+ * @param topic Topic name.
+ */
+export async function unsubscribeFromTopic(topic: string) {
+  try {
+    await messaging().unsubscribeFromTopic(topic);
+    console.log(`Successfully unsubscribed from topic: ${topic}`);
+  } catch (error) {
+    console.error(`Error unsubscribing from topic "${topic}":`, error);
   }
 }
 
@@ -71,35 +113,41 @@ export async function saveNotification(notification: any) {
 }
 
 /**
+ * Retrieve all stored notifications from AsyncStorage.
+ */
+export async function getStoredNotifications() {
+  try {
+    const storedNotifications = (await AsyncStorage.getItem("notifications")) || "[]";
+    return JSON.parse(storedNotifications);
+  } catch (error) {
+    console.error("Error retrieving stored notifications:", error);
+    return [];
+  }
+}
+
+/**
  * Handle foreground notifications.
  */
 export function handleForegroundMessages() {
-  try {
-    messaging().onMessage(async (remoteMessage) => {
-      console.log("Foreground message received:", remoteMessage);
-      await saveNotification(remoteMessage);
-      Alert.alert(
-        remoteMessage.notification?.title || "Notification",
-        remoteMessage.notification?.body || "You have a new message."
-      );
-    });
-  } catch (error) {
-    console.error("Error handling foreground messages:", error);
-  }
+  messaging().onMessage(async (remoteMessage) => {
+    console.log("Foreground message received:", remoteMessage);
+    await saveNotification(remoteMessage);
+
+    Alert.alert(
+      remoteMessage.notification?.title || "Notification",
+      remoteMessage.notification?.body || "You have a new message."
+    );
+  });
 }
 
 /**
  * Handle background notifications.
  */
 export function handleBackgroundMessages() {
-  try {
-    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-      console.log("Background message received:", remoteMessage);
-      await saveNotification(remoteMessage);
-    });
-  } catch (error) {
-    console.error("Error handling background messages:", error);
-  }
+  messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+    console.log("Background message received:", remoteMessage);
+    await saveNotification(remoteMessage);
+  });
 }
 
 /**
@@ -122,14 +170,12 @@ export function removeNotificationListener(listener: (notifications: any[]) => v
 }
 
 /**
- * Retrieve all stored notifications from AsyncStorage.
+ * Open the app's notification settings in the system settings.
  */
-export async function getStoredNotifications() {
-  try {
-    const storedNotifications = (await AsyncStorage.getItem("notifications")) || "[]";
-    return JSON.parse(storedNotifications);
-  } catch (error) {
-    console.error("Error retrieving stored notifications:", error);
-    return [];
+export function openAppNotificationSettings() {
+  if (Platform.OS === "ios") {
+    Linking.openURL("app-settings:");
+  } else {
+    Linking.openSettings();
   }
 }

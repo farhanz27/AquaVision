@@ -13,7 +13,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { useRouter } from "expo-router";
-import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import auth from "@react-native-firebase/auth";
 import database from "@react-native-firebase/database";
 import {
   requestNotificationPermission,
@@ -30,6 +30,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Login function
   const signIn = async () => {
     setLoading(true);
     try {
@@ -46,8 +47,11 @@ export default function Login() {
         const userData = userSnapshot.val();
         console.log("User data fetched:", userData);
 
+        // Request notification permission and initialize FCM
         await initializeFCM(user.uid, userData.devices);
-        router.replace("/dashboard"); // Navigate to the dashboard
+
+        // Navigate to the dashboard
+        router.replace("/dashboard");
       } else {
         await auth().signOut();
         Alert.alert("Email Not Verified", "Please verify your email before logging in.");
@@ -65,12 +69,16 @@ export default function Login() {
     }
   };
 
+  // FCM initialization
   const initializeFCM = async (userId: string, devices: Record<string, boolean>) => {
     try {
       const permissionGranted = await requestNotificationPermission();
       if (!permissionGranted) {
         console.warn("Notification permission not granted.");
-        Alert.alert("Notification Permission", "Enable notifications for a better experience.");
+        Alert.alert(
+          "Notification Permission",
+          "Enable notifications for a better experience in the app."
+        );
         return;
       }
 

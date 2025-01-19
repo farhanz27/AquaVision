@@ -45,7 +45,8 @@ export default function Index() {
     );
   }
 
-  return null; // Redirection and logic handled in useEffect
+  // The screen handles redirection, so we return null
+  return null;
 }
 
 const styles = StyleSheet.create({
