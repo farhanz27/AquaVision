@@ -11,6 +11,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "react-native-paper";
 import database from "@react-native-firebase/database";
 import auth from "@react-native-firebase/auth";
+import { format } from "date-fns"; // Import date-fns for formatting
 import BottomSheet from "@/components/BottomSheet";
 
 type Notification = {
@@ -33,10 +34,15 @@ export default function NotificationsScreen() {
     const notificationsRef = database().ref("/notifications");
     const onValueChange = notificationsRef.on("value", (snapshot) => {
       const data = snapshot.val() || {};
-      const fetchedNotifications = Object.keys(data).map((key) => ({
-        id: key,
-        ...data[key],
-      }));
+      const fetchedNotifications = Object.keys(data)
+        .map((key) => ({
+          id: key,
+          ...data[key],
+        }))
+        .sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        ); // Sort by latest timestamp
       setNotifications(fetchedNotifications);
     });
 
@@ -93,17 +99,26 @@ export default function NotificationsScreen() {
     setBottomSheetVisible(false);
   };
 
+  // Format timestamp
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      const date = new Date(timestamp); // Assuming timestamp is an ISO string or UNIX timestamp
+      return format(date, "PPpp"); // Example: Jan 19, 2025, 4:30 PM
+    } catch (error) {
+      console.error("Invalid date format", error);
+      return timestamp; // Fallback to the original timestamp
+    }
+  };
+
   const renderNotification = useCallback(
     ({ item }: { item: Notification }) => {
-      const isRead = currentUserId ? item.readBy?.[currentUserId] : undefined;
+      const isRead = currentUserId ? item.readBy?.[currentUserId] : false;
       return (
         <View
           style={[
             styles.notificationCard,
             {
-              backgroundColor: isRead
-                ? theme.colors.surface
-                : theme.colors.primaryContainer,
+              backgroundColor: theme.colors.surface,
               borderColor: theme.colors.outline,
             },
           ]}
@@ -117,7 +132,8 @@ export default function NotificationsScreen() {
               style={[
                 styles.notificationTitle,
                 {
-                  color: isRead ? theme.colors.onSurface : theme.colors.onPrimaryContainer,
+                  color: theme.colors.onSurface,
+                  opacity: isRead ? 0.5 : 1, // Fade out the title if read
                 },
               ]}
             >
@@ -126,14 +142,25 @@ export default function NotificationsScreen() {
             <Text
               style={[
                 styles.notificationBody,
-                { color: theme.colors.onSurfaceVariant },
+                {
+                  color: theme.colors.onSurfaceVariant,
+                  opacity: isRead ? 0.5 : 1, // Fade out the body if read
+                },
               ]}
-              numberOfLines={1}
+              numberOfLines={2}
             >
               {item.body}
             </Text>
-            <Text style={[styles.notificationTime, { color: theme.colors.onSurfaceVariant }]}>
-              {item.timestamp}
+            <Text
+              style={[
+                styles.notificationTime,
+                {
+                  color: theme.colors.onSurfaceVariant,
+                  opacity: isRead ? 0.5 : 1, // Fade out the timestamp if read
+                },
+              ]}
+            >
+              {formatTimestamp(item.timestamp)}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -148,6 +175,7 @@ export default function NotificationsScreen() {
     },
     [theme, currentUserId, openBottomSheet, deleteNotification]
   );
+  
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -162,7 +190,7 @@ export default function NotificationsScreen() {
         <View style={styles.emptyContainer}>
           <MaterialCommunityIcons
             name="bell-outline"
-            size={47}
+            size={48}
             color={theme.colors.onSurfaceVariant}
           />
           <Text style={[styles.noNotifications, { color: theme.colors.onSurfaceVariant }]}>
@@ -177,13 +205,12 @@ export default function NotificationsScreen() {
         visible={bottomSheetVisible}
         title={selectedNotification?.title}
         onClose={closeBottomSheet}
-        //height="50%"
       >
         <Text style={[styles.bottomSheetBody, { color: theme.colors.onSurfaceVariant }]}>
           {selectedNotification?.body}
         </Text>
         <Text style={[styles.bottomSheetTime, { color: theme.colors.onSurfaceVariant }]}>
-          {selectedNotification?.timestamp}
+          {selectedNotification ? formatTimestamp(selectedNotification.timestamp) : ""}
         </Text>
       </BottomSheet>
     </View>
@@ -232,7 +259,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   deleteButton: {
-    marginLeft: 15,
+    marginLeft: 30,
   },
   bottomSheetBody: {
     fontSize: 16,
