@@ -35,3 +35,8 @@ This is an [Expo](https://expo.dev) project designed to help users monitor and m
 - **Firebase Cloud Messaging**: Push notification delivery.
 - **React Native Gifted Chart Kit**: Data visualization.
 - **Firebase Cloud Functions**: Backend sensor monitoring and alert generation.
+
+
+
+
+Let me know if further adjustments are needed!
