@@ -1,5 +1,4 @@
 import React from "react";
-import { KeyboardAvoidingView, Platform, View, StyleSheet } from "react-native";
 import { StatusBar } from "react-native";
 import { Provider as PaperProvider } from "react-native-paper";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
@@ -14,11 +13,6 @@ function AppContent() {
         barStyle={isDarkMode ? "light-content" : "dark-content"}
         backgroundColor={theme.colors.surface}
       />
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
         {/* Root Stack Navigator */}
         <Stack
           screenOptions={{
@@ -29,7 +23,6 @@ function AppContent() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         </Stack>
-      </KeyboardAvoidingView>
     </PaperProvider>
   );
 }

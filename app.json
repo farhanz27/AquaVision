@@ -17,7 +17,8 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.mohd_farhan.AquaVision",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "bundler": "metro",

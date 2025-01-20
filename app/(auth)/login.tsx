@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
   StatusBar,
   Text,
   Keyboard,
@@ -104,73 +103,70 @@ export default function Login() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
-        <KeyboardAvoidingView behavior="padding" style={styles.keyboard}>
-          <Text style={[styles.title, { color: theme.colors.primary }]}>AquaVision</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.colors.surface,
-                borderColor: theme.colors.outline,
-                color: theme.colors.onSurface,
-              },
-            ]}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Email"
-            placeholderTextColor={theme.colors.onSurfaceVariant}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            editable={!loading}
-          />
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.colors.surface,
-                borderColor: theme.colors.outline,
-                color: theme.colors.onSurface,
-              },
-            ]}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Password"
-            placeholderTextColor={theme.colors.onSurfaceVariant}
-            secureTextEntry
-            editable={!loading}
-          />
-          {loading ? (
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-          ) : (
-            <>
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: theme.colors.primary }]}
-                onPress={signIn}
-                disabled={loading}
-              >
-                <Text style={[styles.buttonText, { color: theme.colors.onPrimary }]}>
-                  Sign In
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  styles.signupButton,
-                  {
-                    backgroundColor: theme.colors.surface,
-                    borderColor: theme.colors.primary,
-                  },
-                ]}
-                onPress={() => router.push("/register")}
-              >
-                <Text style={[styles.signupButtonText, { color: theme.colors.primary }]}>
-                  Create Account
-                </Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </KeyboardAvoidingView>
+        <Text style={[styles.title, { color: theme.colors.primary }]}>AquaVision</Text>
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.outline,
+              color: theme.colors.onSurface,
+            },
+          ]}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Email"
+          placeholderTextColor={theme.colors.onSurfaceVariant}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          editable={!loading}
+        />
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.outline,
+              color: theme.colors.onSurface,
+            },
+          ]}
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Password"
+          placeholderTextColor={theme.colors.onSurfaceVariant}
+          secureTextEntry
+          editable={!loading}
+        />
+        {loading ? (
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        ) : (
+          <>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: theme.colors.primary }]}
+              onPress={signIn}
+              disabled={loading}
+            >
+              <Text style={[styles.buttonText, { color: theme.colors.onPrimary }]}>
+                Sign In
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                styles.signupButton,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.primary,
+                },
+              ]}
+              onPress={() => router.push("/register")}
+            >
+              <Text style={[styles.signupButtonText, { color: theme.colors.primary }]}>
+                Create Account
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </TouchableWithoutFeedback>
   );

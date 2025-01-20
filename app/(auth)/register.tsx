@@ -3,7 +3,6 @@ import {
   Text,
   View,
   StyleSheet,
-  KeyboardAvoidingView,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
@@ -91,9 +90,7 @@ export default function Register() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
-        <KeyboardAvoidingView behavior="padding" style={styles.keyboard}>
-          <Text style={[styles.title, { color: theme.colors.primary }]}>Create Account</Text>
+        <Text style={[styles.title, { color: theme.colors.primary }]}>Create Account</Text>
           <TextInput
             style={[
               styles.input,
@@ -167,7 +164,6 @@ export default function Register() {
               <Text style={[styles.buttonText, { color: theme.colors.onPrimary }]}>Register</Text>
             </TouchableOpacity>
           )}
-        </KeyboardAvoidingView>
       </View>
     </TouchableWithoutFeedback>
   );

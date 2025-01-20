@@ -3,7 +3,6 @@ import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTheme } from "react-native-paper";
 import { NotificationsContext } from "@/context/NotificationsContext";
-import { KeyboardAvoidingView } from "react-native";
 
 export default function TabLayout() {
   const theme = useTheme();

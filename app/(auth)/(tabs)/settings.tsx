@@ -9,8 +9,6 @@ import {
   TouchableOpacity,
   TextInput,
   Keyboard,
-  KeyboardAvoidingView,
-  Platform
 } from "react-native";
 import { useRouter } from "expo-router";
 import auth from "@react-native-firebase/auth";
@@ -164,10 +162,6 @@ export default function SettingsScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={[styles.profileContainer, { backgroundColor: theme.colors.surface }]}>
         <Text style={[styles.title, { color: theme.colors.onSurface }]}>My Profile</Text>
@@ -285,7 +279,6 @@ export default function SettingsScreen() {
         </View>
       </BottomSheet>
     </View>
-    </KeyboardAvoidingView>
   );
 }
 
