@@ -141,10 +141,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     textAlign: "center",
-    paddingVertical: 15,
+    paddingVertical: 20,
   },
   sheetContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
     flex: 1,
   },
   scrollContent: {
