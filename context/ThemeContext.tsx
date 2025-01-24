@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
-import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { MD3Theme } from "react-native-paper";
+import { MD3Theme, Provider as PaperProvider } from "react-native-paper";
 import { customTheme } from "@/constants/Colors";
 
 type ThemeContextType = {
@@ -13,11 +12,10 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const systemColorScheme = useColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === "dark");
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Load theme preference from AsyncStorage
   useEffect(() => {
-    // Load the theme preference from AsyncStorage
     const loadThemePreference = async () => {
       try {
         const storedTheme = await AsyncStorage.getItem("themePreference");
@@ -32,25 +30,24 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadThemePreference();
   }, []);
 
+  // Toggle between light and dark mode
   const toggleTheme = async () => {
-    try {
-      const newMode = !isDarkMode;
-      setIsDarkMode(newMode);
-      await AsyncStorage.setItem("themePreference", newMode ? "dark" : "light");
-    } catch (error) {
-      console.error("Failed to save theme preference", error);
-    }
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    await AsyncStorage.setItem("themePreference", newMode ? "dark" : "light");
   };
 
+  // Generate theme
   const theme = useMemo(() => customTheme(isDarkMode), [isDarkMode]);
 
   return (
     <ThemeContext.Provider value={{ theme, isDarkMode, toggleTheme }}>
-      {children}
+      <PaperProvider theme={theme}>{children}</PaperProvider>
     </ThemeContext.Provider>
   );
 };
 
+// Custom hook to use the theme context
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
