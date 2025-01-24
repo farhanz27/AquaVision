@@ -90,6 +90,10 @@ export default function Register() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <StatusBar
+          barStyle={theme.dark ? "light-content" : "dark-content"} // Adjust based on the theme
+          backgroundColor={theme.colors.background} // Match the background
+        />
         <Text style={[styles.title, { color: theme.colors.primary }]}>Create Account</Text>
           <TextInput
             style={[

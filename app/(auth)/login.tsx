@@ -19,7 +19,7 @@ import {
   subscribeToTopic,
   handleForegroundMessages,
   handleBackgroundMessages,
-} from "@/utils/notifications"; // Import FCM utilities
+} from "@/utils/notifications";
 import { useTheme } from "react-native-paper";
 
 export default function Login() {
@@ -103,6 +103,11 @@ export default function Login() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        {/* Set the StatusBar explicitly */}
+        <StatusBar
+          barStyle={theme.dark ? "light-content" : "dark-content"} // Adjust based on the theme
+          backgroundColor={theme.colors.background} // Match the background
+        />
         <Text style={[styles.title, { color: theme.colors.primary }]}>AquaVision</Text>
         <TextInput
           style={[
