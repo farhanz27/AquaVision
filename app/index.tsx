@@ -39,7 +39,7 @@ export default function Index() {
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <StatusBar
           barStyle={isDarkMode ? "light-content" : "dark-content"}
-          backgroundColor={theme.colors.background}
+          backgroundColor={theme.colors.surface}
         />
       </View>
     );
