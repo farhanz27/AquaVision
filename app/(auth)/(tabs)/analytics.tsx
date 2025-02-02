@@ -33,6 +33,7 @@ export default function AnalyticsScreen() {
   });
   const [activeFilter, setActiveFilter] = useState<"month" | "year" | null>(null);
 
+
   const MONTHS = [
     { label: "January", value: 0 },
     { label: "February", value: 1 },
@@ -164,11 +165,16 @@ export default function AnalyticsScreen() {
 
   const renderChart = useCallback(
     ({ item }: { item: { title: string; data: { value: number; label: string }[]; summary: any } }) => {
-      // Validate the data format
       const validatedData = item.data.map((point) => ({
         value: typeof point.value === "number" ? point.value : 0,
         label: typeof point.label === "string" ? point.label : "",
       }));
+
+      // Find the maximum value from the dataset
+      const maxValue = Math.max(...validatedData.map((item) => item.value));
+
+      // Ensure the Y-axis max value is 10 units above the maximum data point
+      const chartMaxValue = Math.ceil(maxValue + 10);
   
       return (
         <View
@@ -186,31 +192,70 @@ export default function AnalyticsScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.scrollContainer}
           >
-          <LineChart
-            data={validatedData} // Use validated data
-            width={Math.max(600, validatedData.length * 40)}
-            height={150}
-            noOfSections={4}
-            initialSpacing={20}
-            endSpacing={40}
-            spacing={40}
-            areaChart
-            focusEnabled
-            showTextOnFocus
-            //showStripOnFocus
-            //stripColor={theme.colors.primary}
-            //stripOpacity={0.5}
-            color={theme.colors.primary}
-            startFillColor={theme.colors.primary}
-            endFillColor={theme.colors.primary}
-            startOpacity={0.4}
-            endOpacity={0.2}
-            dataPointsColor={theme.colors.primary}
-            dataPointsShape="circle"
-            dataPointsRadius={5}
-            xAxisLabelTextStyle={{ color: theme.colors.onSurface, fontSize: 10 }}
-            yAxisTextStyle={{ color: theme.colors.onSurface, fontSize: 10 }}
-          />
+            <LineChart
+              data={validatedData}
+              width={Math.max(600, validatedData.length * 41)}
+              height={180}
+              noOfSections={4}
+              initialSpacing={20}
+              endSpacing={40}
+              spacing={40}
+              areaChart
+              //focusEnabled
+              showTextOnFocus
+              color={theme.colors.primary}
+              startFillColor={theme.colors.primary}
+              endFillColor={theme.colors.primary}
+              startOpacity={0.4}
+              endOpacity={0.2}
+              dataPointsColor={theme.colors.primary}
+              dataPointsShape="circle"
+              dataPointsRadius={5}
+              xAxisLabelTextStyle={{ color: theme.colors.onSurface, fontSize: 12 }}
+              yAxisTextStyle={{ color: theme.colors.onSurface, fontSize: 12 }}
+              maxValue={chartMaxValue}
+              pointerConfig={{
+                pointerStripUptoDataPoint: true,
+                pointerStripColor: theme.colors.primary,
+                pointerStripWidth: 1,
+                strokeDashArray: [5, 5],
+                pointerColor: theme.colors.onSurface,
+                radius: 5,
+                pointerLabelWidth: 70,
+                pointerLabelHeight: 45,
+                //shiftPointerLabelY: -15,
+                //shiftPointerLabelX: -25,
+                persistPointer: true,
+                //activatePointersInstantlyOnTouch: true,
+                //activatePointersOnLongPress: true,
+                autoAdjustPointerLabelPosition: true,
+                pointerLabelComponent: (items: { value: number; label: string }[]) => {
+                  return (
+                    <View
+                      style={{
+                        height: 40,
+                        width: 70,
+                        backgroundColor: theme.colors.surface,
+                        borderRadius: 5,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        padding: 8,
+                        borderColor: theme.colors.outline,
+                        borderWidth: 2,
+                      }}
+                    >
+                      {items.map((item, index) => (
+                        <View key={index} style={{ alignItems: 'center' }}>
+                          <Text style={{ color: theme.colors.primary, fontWeight: 'bold', fontSize: 14 }}>
+                            {item.value.toFixed(3)}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  );
+                },
+              }}
+            />
           </ScrollView>
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
@@ -237,6 +282,7 @@ export default function AnalyticsScreen() {
     },
     [theme]
   );
+  
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -312,18 +358,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 10,
-    paddingVertical: 20,
-    marginBottom: 35
+    paddingTop: 16,
+    paddingBottom: 40,
   },
   listContent: {
     paddingHorizontal: 10,
+    paddingTop: 2,
+    paddingBottom: 40,
   },
   filterContainer: {
     borderRadius: 16,
     padding: 20,
     marginHorizontal: 10,
-    marginBottom: 16,
-    elevation: 1,
+    marginBottom: 14,
+    elevation: 4,
   },
   buttonRow: {
     flexDirection: "row",
@@ -346,7 +394,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    elevation: 1,
+    elevation: 4,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -354,7 +402,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 15,
   },
   summaryRow: {
     flexDirection: "row",

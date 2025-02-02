@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -16,7 +16,15 @@ import messaging from "@react-native-firebase/messaging";
 import database from "@react-native-firebase/database";
 import { useTheme } from "@/context/ThemeContext";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import BottomSheet from "@/components/BottomSheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { CustomBackground } from '@/components/CustomSheetBackground';
+import BackHandlerComponent from "@/components/BackHandler";
+import BottomSheet, { 
+  BottomSheetBackdropProps, 
+  BottomSheetBackdrop, 
+  BottomSheetView, 
+  useBottomSheetSpringConfigs 
+} from "@gorhom/bottom-sheet";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -27,13 +35,24 @@ export default function SettingsScreen() {
   const [profile, setProfile] = useState({
     username: "Guest",
     email: "",
-    devices: {}, // Updated to support multiple devices
+    devices: {},
   });
   const [newUsername, setNewUsername] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [modalType, setModalType] = useState<"username" | "email">("username");
-  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const textInputRef = useRef<TextInput>(null);
+  const snapPoints = useMemo(() => ["80%"], []);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const user = auth().currentUser;
+
+  const handleBackPress = () => {
+    if (sheetOpen) {
+      bottomSheetRef.current?.close(); // Close the bottom sheet
+      return true; // Prevent the default back button action
+    }
+    return false; // Allow the default back button action
+  };
 
   useEffect(() => {
     const userId = user?.uid;
@@ -45,7 +64,6 @@ export default function SettingsScreen() {
 
     const userRef = database().ref(`/users/${userId}`);
 
-    // Fetch and listen to user profile updates
     const fetchUserProfile = userRef.on("value", (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -59,7 +77,6 @@ export default function SettingsScreen() {
       }
     });
 
-    // Fetch notification preferences
     const fetchNotificationPreference = async () => {
       try {
         const enabled = await messaging().hasPermission();
@@ -102,7 +119,6 @@ export default function SettingsScreen() {
 
   const handleToggleNotifications = async (value: boolean) => {
     setToggleLoading(true);
-
     try {
       if (value) {
         const permission = await messaging().requestPermission();
@@ -127,7 +143,17 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleEditPress = (type: "username" | "email") => {
+    setModalType(type);
+    bottomSheetRef.current?.expand();
+    setTimeout(() => {
+      textInputRef.current?.focus();
+    }, 300); // Ensure focus after animation
+  };
+
   const handleSave = async () => {
+    Keyboard.dismiss(); // Dismiss the keyboard when saving
+
     if (modalType === "username" && !newUsername.trim()) {
       Alert.alert("Error", "Username cannot be empty.");
       return;
@@ -152,7 +178,7 @@ export default function SettingsScreen() {
         setProfile((prev) => ({ ...prev, email: newEmail }));
         setNewEmail("");
       }
-      setIsBottomSheetVisible(false);
+      bottomSheetRef.current?.close();
       Alert.alert("Success", `${modalType === "username" ? "Username" : "Email"} has been updated.`);
     } catch (error) {
       Alert.alert("Error", `Failed to update ${modalType}. Please try again.`);
@@ -161,20 +187,54 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleCancel = async () => {
+    Keyboard.dismiss(); // Dismiss the keyboard
+    bottomSheetRef.current?.close();
+  };
+
+  const handleSheetChanges = useCallback((index: number) => {
+    if (index <= 0) { // When the sheet is closed or collapsed
+      setNewUsername("");
+      setNewEmail("");
+      Keyboard.dismiss(); // Dismiss the keyboard when the sheet collapses or closes
+    } else {
+      setSheetOpen(index > 0);
+    }
+    console.log("handleSheetChange", index);
+  }, []);
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior="close"
+        onPress={() => {
+          Keyboard.dismiss(); // Dismiss the keyboard when the backdrop is pressed
+        }}
+      />
+    ),
+    []
+  );
+
+  const springConfigs = useBottomSheetSpringConfigs({
+    damping: 80,
+    overshootClamping: true,
+    restDisplacementThreshold: 0.1,
+    restSpeedThreshold: 0.1,
+    stiffness: 600,
+  });
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <GestureHandlerRootView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={[styles.profileContainer, { backgroundColor: theme.colors.surface }]}>
         <Text style={[styles.title, { color: theme.colors.onSurface }]}>My Profile</Text>
         <View style={[styles.infoRow, styles.rowSpacing]}>
           <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
             Username: {profile.username}
           </Text>
-          <TouchableOpacity
-            onPress={() => {
-              setModalType("username");
-              setIsBottomSheetVisible(true);
-            }}
-          >
+          <TouchableOpacity onPress={() => handleEditPress("username")}>
             <Icon name="edit" size={24} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
@@ -182,12 +242,7 @@ export default function SettingsScreen() {
           <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
             Email: {profile.email}
           </Text>
-          <TouchableOpacity
-            onPress={() => {
-              setModalType("email");
-              setIsBottomSheetVisible(true);
-            }}
-          >
+          <TouchableOpacity onPress={() => handleEditPress("email")}>
             <Icon name="edit" size={24} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
@@ -233,52 +288,87 @@ export default function SettingsScreen() {
       >
         <Text style={[styles.logoutText, { color: theme.colors.onError }]}>Sign Out</Text>
       </TouchableOpacity>
+      <BackHandlerComponent
+        onBackPress={handleBackPress}
+        condition={sheetOpen} // Only active when the sheet is open
+      />
       <BottomSheet
-        visible={isBottomSheetVisible}
-        setStatus={setIsBottomSheetVisible}
-        title={`Change ${modalType === "username" ? "Username" : "Email"}`}
-        //height="50%"
-        onClose={() => {
-          Keyboard.dismiss();
-          setNewUsername("");
-          setNewEmail("");
-        }}
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+        backdropComponent={renderBackdrop}
+        animationConfigs={springConfigs}
+        backgroundComponent={CustomBackground}
+        enablePanDownToClose
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
       >
-        <TextInput
-          style={[
-            styles.inputNoBorder,
-            { backgroundColor: theme.colors.background, color: theme.colors.onSurface },
-          ]}
-          placeholder={`Enter new ${modalType}`}
-          placeholderTextColor={theme.colors.onSurfaceVariant}
-          value={modalType === "username" ? newUsername : newEmail}
-          onChangeText={modalType === "username" ? setNewUsername : setNewEmail}
-          autoFocus={true}
-        />
-        <View style={styles.modalActions}>
-          <TouchableOpacity
-            style={[styles.modalButton, { backgroundColor: theme.colors.error }]}
-            onPress={() => {
-              Keyboard.dismiss();
-              setIsBottomSheetVisible(false);
-            }}
+        <BottomSheetView style={[styles.bottomSheetContent]}>
+          <Text
+            style={[
+              styles.bottomSheetTitle,
+              { color: theme.colors.onSurface },
+            ]}
           >
-            <Text style={[styles.modalButtonText, { color: theme.colors.onError }]}>Cancel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
-            onPress={handleSave}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={theme.colors.onPrimary} />
-            ) : (
-              <Text style={[styles.modalButtonText, { color: theme.colors.onPrimary }]}>Save</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+            Change {modalType === "username" ? "Username" : "Email"}
+          </Text>
+          <TextInput
+            ref={textInputRef}
+            style={[
+              styles.inputNoBorder,
+              {
+                backgroundColor: theme.colors.background,
+                color: theme.colors.onSurface,
+              },
+            ]}
+            placeholder={`Enter new ${modalType}`}
+            placeholderTextColor={theme.colors.onSurfaceVariant}
+            value={modalType === "username" ? newUsername : newEmail}
+            onChangeText={modalType === "username" ? setNewUsername : setNewEmail}
+          />
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={[
+                styles.modalButton,
+                { backgroundColor: theme.colors.error },
+              ]}
+              onPress={handleCancel}
+            >
+              <Text
+                style={[
+                  styles.modalButtonText,
+                  { color: theme.colors.onError },
+                ]}
+              >
+                Cancel
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.modalButton,
+                { backgroundColor: theme.colors.primary },
+              ]}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={theme.colors.onPrimary} />
+              ) : (
+                <Text
+                  style={[
+                    styles.modalButtonText,
+                    { color: theme.colors.onPrimary },
+                  ]}
+                >
+                  Save
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </BottomSheetView>
       </BottomSheet>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -286,14 +376,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingVertical: 20,
-    marginBottom: 35
+    paddingTop: 16,
+    paddingBottom: 80,
   },
   profileContainer: {
     marginBottom: 20,
     padding: 16,
     borderRadius: 16,
-    elevation: 1,
+    elevation: 4,
   },
   title: {
     fontSize: 24,
@@ -319,7 +409,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 16,
     borderRadius: 16,
-    elevation: 1,
+    elevation: 4,
   },
   optionText: {
     fontSize: 16,
@@ -331,7 +421,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logoutButton: {
-    marginTop: 30,
+    marginTop: 20,
     padding: 16,
     borderRadius: 16,
     alignItems: "center",
@@ -340,25 +430,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  modalButton: {
+  bottomSheetContent: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
+    padding: 16,
     alignItems: "center",
-    marginHorizontal: 5,
   },
-  modalButtonText: {
-    fontSize: 16,
+  bottomSheetTitle: {
+    fontSize: 20,
     fontWeight: "bold",
+    marginBottom: 16,
   },
   inputNoBorder: {
     width: "100%",
     padding: 16,
     borderRadius: 8,
     fontSize: 16,
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+    gap: 10,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

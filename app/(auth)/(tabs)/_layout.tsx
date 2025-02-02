@@ -1,67 +1,56 @@
-import React, { useContext } from "react";
+import React, { useEffect } from "react";
 import { Tabs } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { TabBar } from "@/components/TabBar";
 import { useTheme } from "react-native-paper";
-import { NotificationsContext } from "@/context/NotificationsContext";
+import changeNavigationBarColor from "react-native-navigation-bar-color";
 
 export default function TabLayout() {
   const theme = useTheme();
-  const { unreadCount } = useContext(NotificationsContext);
 
-  const getTabBarIcon = (name: string, focused: boolean, color: string) => {
-    const iconName = focused ? `${name}-sharp` : `${name}-outline`;
-    return (
-      <Ionicons
-        name={iconName as React.ComponentProps<typeof Ionicons>["name"]}
-        color={color}
-        size={24}
-      />
-    );
-  };
+  /* // Update navigation bar color
+  useEffect(() => {
+    // Change navigation bar color to match the theme's surface color
+    const setNavigationBarColor = async () => {
+      try {
+        await changeNavigationBarColor(theme.colors.surface, theme.dark); // Use `theme.dark` to set light or dark icons
+      } catch (error) {
+        console.error("Failed to set navigation bar color:", error);
+      }
+    };
+    setNavigationBarColor();
+  }, [theme]); */
 
   return (
     <Tabs
+      tabBar={(props) => <TabBar {...props} />}
       screenOptions={{
         headerStyle: { backgroundColor: theme.colors.surface },
         headerTintColor: theme.colors.onSurface,
-        tabBarStyle: {
-          position: "absolute", 
-          flexDirection: 'row',
-          borderTopWidth: 0, 
-          backgroundColor: theme.colors.surface,
-        },
-        tabBarActiveTintColor: theme.colors.primary, // Active tab color
-        tabBarInactiveTintColor: theme.colors.onSurface, // Inactive tab color
-        tabBarHideOnKeyboard: true
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tabs.Screen
         name="dashboard"
         options={{
           title: "Dashboard",
-          tabBarIcon: ({ color, focused }) => getTabBarIcon("home", focused, color),
         }}
       />
       <Tabs.Screen
         name="analytics"
         options={{
           title: "Analytics",
-          tabBarIcon: ({ color, focused }) => getTabBarIcon("analytics", focused, color),
         }}
       />
       <Tabs.Screen
         name="notifications"
         options={{
           title: "Notifications",
-          tabBarIcon: ({ color, focused }) => getTabBarIcon("notifications", focused, color),
-          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color, focused }) => getTabBarIcon("settings", focused, color),
         }}
       />
     </Tabs>

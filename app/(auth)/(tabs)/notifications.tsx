@@ -11,7 +11,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "react-native-paper";
 import database from "@react-native-firebase/database";
 import auth from "@react-native-firebase/auth";
-import { format } from "date-fns"; // Import date-fns for formatting
+import { format } from "date-fns";
 import BottomSheet from "@/components/BottomSheet";
 
 type Notification = {
@@ -221,19 +221,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 10,
-    paddingVertical: 20,
-    marginBottom: 35
+    paddingBottom: 40,
   },
   listContent: {
     paddingHorizontal: 10,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
   notificationCard: {
     padding: 20,
     borderRadius: 16,
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
-    elevation: 1,
+    marginBottom: 16,
+    elevation: 4,
   },
   notificationTitle: {
     fontSize: 16,

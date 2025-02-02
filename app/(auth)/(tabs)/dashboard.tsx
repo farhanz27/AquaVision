@@ -5,7 +5,6 @@ import auth from "@react-native-firebase/auth";
 import database from "@react-native-firebase/database";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-// Define sensor data type
 type SensorData = {
   value: number;
   timestamp: string;
@@ -16,7 +15,6 @@ type Prediction = {
   trend: string;
 };
 
-// Sensor thresholds
 const SENSOR_THRESHOLDS = {
   ph: {
     danger: [0, 6.0, 9.5, 14],
@@ -24,8 +22,8 @@ const SENSOR_THRESHOLDS = {
     safe: [7.0, 8.0],
   },
   tds: {
-    danger: [2000, 3000],
-    warning: [1000, 2000],
+    danger: [0, 200, 1500, 3000],
+    warning: [200, 300, 1000, 1500],
     safe: [300, 1000],
   },
   temperature: {
@@ -131,10 +129,10 @@ const SensorCard = ({ sensor, value, timestamp, prediction }: { sensor: string; 
       </View>
 
       <View style={styles.trendSection}>
-        <Text style={[styles.predictionText, { color: theme.colors.primary }]}>
+        <Text style={[styles.predictionText, { color: theme.colors.onSurface }]}>
           {getTrendMessage(prediction.trend, prediction.percentChange)}
         </Text>
-        <Icon name={getTrendIcon(prediction.trend)} size={20} color={theme.colors.primary} />
+        <Icon name={getTrendIcon(prediction.trend)} size={20} color={theme.colors.onSurface} />
       </View>
     </View>
   );
@@ -253,16 +251,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingVertical: 20,
-    marginBottom: 35
+    paddingTop: 16,
+    paddingBottom: 80,
   },
   sensorCard: {
     flexDirection: "column",
     alignItems: "center",
     borderRadius: 16,
-    padding: 15,
+    padding: 12,
     marginBottom: 16,
-    elevation: 1,
+    elevation: 4,
   },
   topSection: {
     flexDirection: "row",

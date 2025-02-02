@@ -9,7 +9,7 @@ import {
   ScrollView,
   Modal,
 } from "react-native";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme } from "react-native-paper";
 
 type BottomSheetProps = {
   setStatus: (status: boolean) => void;
@@ -29,14 +29,14 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   children,
   title,
   visible,
-  height = "60%",
+  height = "50%",
   titleStyle,
   containerStyle,
   backdropPressToClose = true,
   radius = 20,
   onClose,
 }) => {
-  const { theme } = useTheme();
+  const theme = useTheme();
   const screenHeight = Dimensions.get("window").height;
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
 
