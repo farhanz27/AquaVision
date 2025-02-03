@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View, StatusBar } from "react-native";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import {
+  handleForegroundMessages,
+  handleBackgroundMessages,
+} from "@/utils/notifications";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -29,6 +33,10 @@ export default function Index() {
         setInitializing(false); // Ensure the app doesn't hang in the loading state
       }
     });
+
+    // Initialize message handling
+    handleForegroundMessages();
+    handleBackgroundMessages();
 
     return unsubscribe; // Clean up the subscription on unmount
   }, [router]);

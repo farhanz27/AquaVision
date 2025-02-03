@@ -86,8 +86,8 @@ export const monitorSensorData = onValueCreated(
     const messageTitle =
       status === "danger" ? `❗ Critical Alert: ${typedSensor.toUpperCase()}` : `⚠️ Warning: ${typedSensor.toUpperCase()}`;
     const messageBody = `${typedSensor.toUpperCase()} level ${
-      status === "danger" ? "exceeded" : "approaching"
-    } safe limits at ${value}.\n\nRecommendation:\n${getRecommendations(typedSensor, status)}`;
+      status === "danger" ? "has exceeded the optimal range" : "is approaching the unsafe limit"
+    } at ${value}.\n\nRecommendation:\n${getRecommendations(typedSensor, status)}`;
 
     try {
       const deviceSnapshot = await admin.database().ref(`/devices/${deviceId}/userId`).once("value");

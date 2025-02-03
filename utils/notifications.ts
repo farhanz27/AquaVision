@@ -1,9 +1,10 @@
-import { Alert, Platform, PermissionsAndroid, Linking } from "react-native";
+import { Alert, Platform, PermissionsAndroid, Linking, AppRegistry } from "react-native";
 import messaging from "@react-native-firebase/messaging";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Event listeners to notify components about notification updates
 const notificationListeners: ((notifications: any[]) => void)[] = [];
+let isHeadlessTaskRegistered = false;
 
 /**
  * Request notification permission (Android-specific).
@@ -133,10 +134,10 @@ export function handleForegroundMessages() {
     console.log("Foreground message received:", remoteMessage);
     await saveNotification(remoteMessage);
 
-    Alert.alert(
+    /* Alert.alert(
       remoteMessage.notification?.title || "Notification",
       remoteMessage.notification?.body || "You have a new message."
-    );
+    ); */
   });
 }
 
@@ -148,6 +149,18 @@ export function handleBackgroundMessages() {
     console.log("Background message received:", remoteMessage);
     await saveNotification(remoteMessage);
   });
+
+  if (!isHeadlessTaskRegistered) {
+    AppRegistry.registerHeadlessTask(
+      "ReactNativeFirebaseMessagingHeadlessTask",
+      () => async (remoteMessage) => {
+        console.log("Headless background message received:", remoteMessage);
+        await saveNotification(remoteMessage);
+        return Promise.resolve();
+      }
+    );
+    isHeadlessTaskRegistered = true;
+  }
 }
 
 /**
