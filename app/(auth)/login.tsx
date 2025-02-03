@@ -91,9 +91,7 @@ export default function Login() {
         console.log(`Subscribed to topic: device-${deviceId}`);
       }
 
-      // Initialize message handling
-      handleForegroundMessages();
-      handleBackgroundMessages();
+      
       console.log("FCM initialized successfully.");
     } catch (error) {
       console.error("Error initializing FCM:", error);
@@ -181,7 +179,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
   },
   keyboard: {
     width: "100%",
