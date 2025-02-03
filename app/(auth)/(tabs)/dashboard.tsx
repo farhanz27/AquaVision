@@ -186,10 +186,12 @@ export default function DashboardScreen() {
             const sensorValues: number[] = Object.values(entries).map((entry: any) => parseFloat(entry));
             const sensorTimestamps: string[] = Object.keys(entries);
 
-            latestData[sensor] = sensorValues.map((value, index) => ({
-              value,
-              timestamp: sensorTimestamps[index],
-            }));
+            // Sort timestamps to find the latest entry
+            const sortedTimestamps = sensorTimestamps.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+            const latestTimestamp = sortedTimestamps[0];
+            const latestValue = entries[latestTimestamp];
+
+            latestData[sensor] = [{ value: latestValue, timestamp: latestTimestamp }];
 
             predictionData[sensor] = calculatePrediction(sensorValues);
           });
